@@ -1,51 +1,51 @@
     
     // This function formats the stopwatch time.
-    var stopwatchFormat = (function (){
-      var twoDigits = d3.format("02.0f");
-      return function (milliseconds){
-        var centiseconds = Math.floor(milliseconds / 10),
-            centisecond = centiseconds % 100,
-            seconds = Math.floor(centiseconds /100),
-            second = seconds % 60,
-            minutes = Math.floor(seconds / 60),
-            minute = minutes % 60,
-            hours = Math.floor(minutes / 60);
+    const stopwatchFormat = ((() => {
+      const twoDigits = d3.format("02.0f");
+      return milliseconds => {
+        const centiseconds = Math.floor(milliseconds / 10);
+        const centisecond = centiseconds % 100;
+        const seconds = Math.floor(centiseconds /100);
+        const second = seconds % 60;
+        const minutes = Math.floor(seconds / 60);
+        const minute = minutes % 60;
+        const hours = Math.floor(minutes / 60);
         return [
-          hours >= 1 ? hours + ":" : "",
+          hours >= 1 ? `${hours}:` : "",
           minutes >= 1 ? (
-            (hours >= 1 ? twoDigits(minute) : minute) + ":"
+            `${hours >= 1 ? twoDigits(minute) : minute}:`
           ) : "",
           (minutes >= 1 ? twoDigits(second) : second),
-          hours < 1 ? ":" + twoDigits(centisecond) : "",
+          hours < 1 ? `:${twoDigits(centisecond)}` : "",
         ].join("").replace(/0/g, "O"); // Don't show the dot in the zeros.
       }
-    }());
+    })());
     
     // A component that renders the formatted stopwatch time.
-    var timeDisplay = (function (){
-      var timerLocal = d3.local();
+    const timeDisplay = ((() => {
+      const timerLocal = d3.local();
       return d3.component("div", "time-display")
         .render(function (d){
-          var selection = d3.select(this),
-              timer = timerLocal.get(this);
-          timer && timer.stop();
-          if(d.stopped){
-            selection.text(stopwatchFormat(d.stopTime - d.startTime));
-          } else {
-            timerLocal.set(this, d3.timer(function (){
-              selection.text(stopwatchFormat(Date.now() - d.startTime));
-            }));
-          }
-        })
+        const selection = d3.select(this);
+        const timer = timerLocal.get(this);
+        timer && timer.stop();
+        if(d.stopped){
+          selection.text(stopwatchFormat(d.stopTime - d.startTime));
+        } else {
+          timerLocal.set(this, d3.timer(() => {
+            selection.text(stopwatchFormat(Date.now() - d.startTime));
+          }));
+        }
+      })
         .destroy(function (){
-          var timer = timerLocal.get(this);
+          const timer = timerLocal.get(this);
           timer && timer.stop();
         });
-    }());
+    })());
 
     
     // A generic Button component.
-    var button = d3.component("button")
+    const button = d3.component("button")
       .render(function (d){
         d3.select(this)
             .text(d.text)
@@ -54,7 +54,7 @@
     
     // The button that either starts or stops (pauses) the stopwatch,
     //depending on whether the stopwatch is running or not. 
-    var startStopButton = d3.component("span")
+    const startStopButton = d3.component("span")
       .render(function (d){
         d3.select(this).call(button, {
           text: d.stopped ? "Start" : "Stop",
@@ -63,7 +63,7 @@
       });
     
     // The reset button that stops and resets the stopwatch.
-    var resetButton = d3.component("span")
+    const resetButton = d3.component("span")
       .render(function (d){
         d3.select(this).call(button, {
           text: "Reset",
@@ -72,7 +72,7 @@
       });
     
     // The panel that contains the two buttons.
-    var buttonPanel = d3.component("div")
+    const buttonPanel = d3.component("div")
       .render(function (d){
         d3.select(this)
           .call(startStopButton, d)
@@ -80,7 +80,7 @@
       });
     
     // The top-level app component.
-    var app = d3.component("div")
+    const app = d3.component("div")
       .render(function (d){
         d3.select(this)
             .call(timeDisplay, d)
@@ -88,13 +88,13 @@
       });
     
     function main(){
-      var store = Redux.createStore(reducer),
-          actions = actionsFromDispatch(store.dispatch);
-      
+      const store = Redux.createStore(reducer);
+      const actions = actionsFromDispatch(store.dispatch);
+
       store.subscribe(render);
-      
+
       actions.reset();
-      
+
       function reducer (state, action){
         var state = state || {
           stopped: true
@@ -111,7 +111,7 @@
               stopTime: Date.now()
             });
           case "RESET":
-            var now = Date.now();
+            const now = Date.now();
             return Object.assign({}, state, {
               stopped: true,
               startTime: now,
@@ -124,13 +124,13 @@
 
       function actionsFromDispatch(dispatch){
         return {
-          start: function (){
+          start() {
             dispatch({ type: "START" });
           },
-          stop: function (){
+          stop() {
             dispatch({ type: "STOP" });
           },
-          reset: function (){
+          reset() {
             dispatch({ type: "RESET" });
           }
         }
@@ -139,7 +139,7 @@
       function render(){
         console.log(store.getState());
         d3.select("body").call(app, store.getState(), {
-          actions: actions
+          actions
         });
       }
     }
