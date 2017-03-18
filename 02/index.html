@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<head>
+  <meta charset="utf-8">
+  <script src="https://unpkg.com/d3@4"></script>
+  <script src="https://unpkg.com/d3-component@2.2"></script>
+  <script src="https://unpkg.com/redux@3/dist/redux.min.js"></script>
+  <style>
+    body {
+      text-align: center;
+      margin-top: 75px;
+    }
+    .time-display {
+      color: #3d3d3d;
+      font-size: 10em;
+      font-family: mono;
+      cursor: default;
+    }
+    button {
+      background-color: #7c7c7c;
+      border: solid 3px #7c7c7c;
+      border-radius: 11px;
+      color: white;
+      padding: 20px 60px;
+      margin: 20px;
+      font-size: 58px;
+      cursor: pointer;
+    }
+    button:hover {
+      border: solid 3px black;
+    }
+    button:focus {
+      outline: none;
+    }
+  </style>
+</head>
+<body>
+  <script>
+    
+    // This function formats the stopwatch time.
+    var stopwatchFormat = (function (){
+      var twoDigits = d3.format("02.0f");
+      return function (milliseconds){
+        var centiseconds = Math.floor(milliseconds / 10),
+            centisecond = centiseconds % 100,
+            seconds = Math.floor(centiseconds /100),
+            second = seconds % 60,
+            minutes = Math.floor(seconds / 60),
+            minute = minutes % 60,
+            hours = Math.floor(minutes / 60);
+        return [
+          hours >= 1 ? hours + ":" : "",
+          minutes >= 1 ? (
+            (hours >= 1 ? twoDigits(minute) : minute) + ":"
+          ) : "",
+          (minutes >= 1 ? twoDigits(second) : second),
+          hours < 1 ? ":" + twoDigits(centisecond) : "",
+        ].join("").replace(/0/g, "O"); // Don't show the dot in the zeros.
+      }
+    }());
+    
+    // A component that renders the formatted stopwatch time.
+    var timeDisplay = (function (){
+      var timerLocal = d3.local();
+      return d3.component("div", "time-display")
+        .render(function (d){
+          var selection = d3.select(this),
+              timer = timerLocal.get(this);
+          timer && timer.stop();
+        	if(d.stopped){
+            selection.text(stopwatchFormat(d.stopTime - d.startTime));
+          } else {
+            timerLocal.set(this, d3.timer(function (){
+              selection.text(stopwatchFormat(Date.now() - d.startTime));
+            }));
+          }
+        })
+      	.destroy(function (){
+        	var timer = timerLocal.get(this);
+          timer && timer.stop();
+        });
+    }());
+
+    
+    // A generic Button component.
+    var button = d3.component("button")
+      .render(function (d){
+        d3.select(this)
+            .text(d.text)
+            .on("mousedown", d.onClick);
+      });
+    
+    // The button that either starts or stops (pauses) the stopwatch,
+    //depending on whether the stopwatch is running or not. 
+    var startStopButton = d3.component("span")
+      .render(function (d){
+        d3.select(this).call(button, {
+          text: d.stopped ? "Start" : "Stop",
+          onClick: d.stopped ? d.actions.start : d.actions.stop
+        });
+      });
+    
+    // The reset button that stops and resets the stopwatch.
+    var resetButton = d3.component("span")
+      .render(function (d){
+        d3.select(this).call(button, {
+          text: "Reset",
+          onClick: d.actions.reset
+        });
+      });
+    
+    // The panel that contains the two buttons.
+    var buttonPanel = d3.component("div")
+      .render(function (d){
+        d3.select(this)
+          .call(startStopButton, d)
+          .call(resetButton, d);
+      });
+    
+    // The top-level app component.
+    var app = d3.component("div")
+      .render(function (d){
+        d3.select(this)
+            .call(timeDisplay, d)
+            .call(buttonPanel, d);
+      });
+    
+    function main(){
+      var store = Redux.createStore(reducer),
+          actions = actionsFromDispatch(store.dispatch);
+      
+      store.subscribe(render);
+      
+      actions.reset();
+      
+      function reducer (state, action){
+        var state = state || {
+          stopped: true
+        };
+        switch (action.type) {
+          case "START":
+            return Object.assign({}, state, {
+              stopped: false,
+              startTime: Date.now() - (state.stopTime - state.startTime)
+            });
+          case "STOP":
+            return Object.assign({}, state, {
+              stopped: true,
+              stopTime: Date.now()
+            });
+          case "RESET":
+            var now = Date.now();
+            return Object.assign({}, state, {
+              stopped: true,
+              startTime: now,
+              stopTime: now
+            });
+          default:
+            return state;
+        }
+      }
+
+      function actionsFromDispatch(dispatch){
+        return {
+          start: function (){
+            dispatch({ type: "START" });
+          },
+          stop: function (){
+            dispatch({ type: "STOP" });
+          },
+          reset: function (){
+            dispatch({ type: "RESET" });
+          }
+        }
+      }
+
+      function render(){
+        console.log(store.getState());
+        d3.select("body").call(app, store.getState(), {
+          actions: actions
+        });
+      }
+    }
+    main();
+  </script>
+</body>
