@@ -1,3 +1,7 @@
+an [es2015](https://babeljs.io/learn-es2015/) iteration on the block [Stopwatch](https://bl.ocks.org/curran/593ffae30c42789a9af36f08c983867e) from [@currankelleher](https://twitter.com/currankelleher)
+
+---
+
 A stopwatch app constructed using [d3-component](https://github.com/curran/d3-component).
 
 The following components are defined and used to construct the app:
@@ -12,7 +16,3 @@ The following components are defined and used to construct the app:
 Built with [blockbuilder.org](http://blockbuilder.org)
 
 forked from <a href='http://bl.ocks.org/curran/'>curran</a>'s block: <a href='http://bl.ocks.org/curran/fc8f6989901628e2e79d6374849453ed'>Posts with d3-component</a>
-
-<!-- Start of SimpleHitCounter Code -->
-<div align="center"><img src="http://simplehitcounter.com/hit.php?uid=2238980&f=16777215&b=0" border="0" height="18" width="83"></a><br></div>
-<!-- End of SimpleHitCounter Code -->
