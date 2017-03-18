@@ -75,8 +75,8 @@ const resetButton = d3.component('span')
 const buttonPanel = d3.component('div')
   .render(function (d) {
     d3.select(this)
-      .call(startStopButton, d)
-      .call(resetButton, d);
+      .call(resetButton, d)
+      .call(startStopButton, d);
   });
 
 // The top-level app component.
