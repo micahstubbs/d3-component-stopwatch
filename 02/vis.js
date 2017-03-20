@@ -29,7 +29,7 @@ const timeDisplay = ((() => {
     .render(function (d) {
       const selection = d3.select(this);
       const timer = timerLocal.get(this);
-      timer && timer.stop(); // eslint-disable-line no-unused-expressions
+      if (timer) { timer.stop(); }
       if (d.stopped) {
         selection.text(stopwatchFormat(d.stopTime - d.startTime));
       } else {
@@ -40,7 +40,7 @@ const timeDisplay = ((() => {
     })
     .destroy(function () {
       const timer = timerLocal.get(this);
-      timer && timer.stop(); // eslint-disable-line no-unused-expressions
+      if (timer) { timer.stop(); }
     });
 })());
 
