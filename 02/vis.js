@@ -26,37 +26,36 @@ const stopwatchFormat = ((() => {
 const timeDisplay = ((() => {
   const timerLocal = d3.local();
   return d3.component('div', 'time-display')
-    .render(function (d) {
-      const selection = d3.select(this);
-      const timer = timerLocal.get(this);
+    .render(function (selection, d) {
+      const timer = timerLocal.get(selection.node());
       if (timer) { timer.stop(); }
       if (d.stopped) {
         selection.text(stopwatchFormat(d.stopTime - d.startTime));
       } else {
-        timerLocal.set(this, d3.timer(() => {
+        timerLocal.set(selection.node(), d3.timer(() => {
           selection.text(stopwatchFormat(Date.now() - d.startTime));
         }));
       }
     })
-    .destroy(function () {
-      const timer = timerLocal.get(this);
+    .destroy(function (selection) {
+      const timer = timerLocal.get(selection.node());
       if (timer) { timer.stop(); }
     });
 })());
 
 // A generic Button component.
 const button = d3.component('button')
-  .render(function (d) {
-    d3.select(this)
-        .text(d.text)
-        .on('mousedown', d.onClick);
+  .render(function (selection, d) {
+    selection
+      .text(d.text)
+      .on('mousedown', d.onClick);
   });
 
 // The button that either starts or stops (pauses) the stopwatch,
 // depending on whether the stopwatch is running or not.
 const startStopButton = d3.component('span')
-  .render(function (d) {
-    d3.select(this).call(button, {
+  .render(function (selection, d) {
+    selection.call(button, {
       text: d.stopped ? 'Start' : 'Stop',
       onClick: d.stopped ? d.actions.start : d.actions.stop,
     });
@@ -64,8 +63,8 @@ const startStopButton = d3.component('span')
 
 // The reset button that stops and resets the stopwatch.
 const resetButton = d3.component('span')
-  .render(function (d) {
-    d3.select(this).call(button, {
+  .render(function (selection, d) {
+    selection.call(button, {
       text: 'Reset',
       onClick: d.actions.reset,
     });
@@ -73,18 +72,18 @@ const resetButton = d3.component('span')
 
 // The panel that contains the two buttons.
 const buttonPanel = d3.component('div')
-  .render(function (d) {
-    d3.select(this)
+  .render(function (selection, d) {
+    selection
       .call(resetButton, d)
       .call(startStopButton, d);
   });
 
 // The top-level app component.
 const app = d3.component('div')
-  .render(function (d) {
-    d3.select(this)
-        .call(timeDisplay, d)
-        .call(buttonPanel, d);
+  .render(function (selection, d) {
+    selection
+      .call(timeDisplay, d)
+      .call(buttonPanel, d);
   });
 
 function main() {
